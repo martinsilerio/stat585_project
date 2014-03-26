@@ -7,7 +7,7 @@ In this work, I will try to analize different security indicators for different 
 
 The website <a href="http://crimenmexico.diegovalle.net/en/">http://crimenmexico.diegovalle.net/en/</a> cointains plenty of illustrative plots that give some ideas of the variables. The data was extracted from the webpage of <a href = "http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva">Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública </a>.
 
-The data some irregularities, such as events not recorded for some periods of time, but I will try to do the best I can.
+The data has some irregularities, such as events not recorded for some periods of time, but I will try to do the best I can.
 
 ```{r}
 ## I will delete this later.
