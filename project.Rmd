@@ -16,6 +16,7 @@ summary(cars)
 
 ```{r fig.width=7, fig.height=6}
 suppressMessages(library(ggplot2))
+##
 qplot(speed, dist, data = cars, geom = "point", main = "Just a sample plot")
 ```
 
