@@ -8,3 +8,5 @@ In this work, I will try to analize different security indicators for different 
 The webpage <a href="http://crimenmexico.diegovalle.net/en/">http://crimenmexico.diegovalle.net/en/</a> has some illustrative plots of a subset of crimes-related variables from the site <a href = "http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva">Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública </a>. To be clear, what I plan to do is to use the same source to read all the variables and then generate plots to compare the different Presidential terms.
 
 The data has some irregularities, such as events not recorded for some periods of time, but I will try to do the best I can. It might be a good idea to use `shiny` to create a more complete work.
+
+The webpage where the data is available has menus to select to customize your search and then download the data in several formats. Well, those menus never work. However, I have found another link within the same webpage to download the data in pdf. Right now, I am exploring the possibility of downloading the data directly from the pdf files using `R`, perhaps using the package `tm`.
