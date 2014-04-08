@@ -5,7 +5,7 @@ Last Presidential term (2006-2012) in Mexico was characterized for the violence 
 
 In this work, I will try to analize different security indicators for different Presidential terms: 2000-2006, 2006-2012 and 2012-present to see if there are clear differences in security betweeen goverments. 
 
-The webpage [http://crimenmexico.diegovalle.net/en/](http://crimenmexico.diegovalle.net/en/) has some illustrative plots of a subset of crimes-related variables from the site [Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva). To be clear, what I plan to do is to use the same source to read all the variables and then generate plots to compare the different Presidential terms.
+The webpage [http://crimenmexico.diegovalle.net/en/](http://crimenmexico.diegovalle.net/en/) by [Diego Valle Jones](http://www.diegovalle.net), has some illustrative plots of a subset of crimes-related variables from the site [Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva). To be clear, what I plan to do is to use the same source to read all the variables and then generate plots to compare the different Presidential terms.
 
 The data has some irregularities, such as events not recorded for some periods of time, but I will try to do the best I can. It might be a good idea to use `shiny` to create a more complete work.
 
@@ -13,13 +13,43 @@ The webpage where the data is available has menus to select to customize your se
 
 Description of the data
 ----------------------------------------------
+
 According to the Federal Attorney General of Mexico, the data is categorized in two types:
 - Federal: Those crimes that affect the health, the economy or the security of the country. Examples of this crimes are illegal drug trade, ecological damage  and illegal carraige of weapons.
-- Common: Those crimes that affect people directly. Examples of this crimes are sexual assaults, homicides and robbery. [simat](http://cimat.mx)
+  - Against public health: trading, posession, production suplying, traffic, transportation and others.
+  - Federal Law of Firearms and Explosives
+  - Others: Intelectual property, against natural environment, election related, etcetera.
+- Common: Those crimes that affect people directly. Examples of this crimes are sexual assaults, homicides and robbery. 
+  - Offenses against property.
+  - Sexual crimes
+  - Homicides.
+  - Lesiones.
+  - Kidnapping.
+  - Common robbery.
+  - Cattle raiding.
+  - Road robbery.
+  - Robbery in banks
+  - Others.
 
 Data extraction and complications
 -------------------------------------------------
-![01](../webpages_images/01_start.png)
+
+The data extraction turned out to be more difficult than I thought. The website of [Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva) displays the following menu (it is in Spanish, but most of the words are cognates):
+
+![02](../webpages_images/02_menu.png)
+
+If the first option is selected, _Herramientas de Análisis_  (Analysis tools), you can create plots for the features and also download the data you are plotting, however, it never works well. The next image is a screenshot the site.
+
+![04](../webpages_images/04_analysis.png)
+
+If you select the option _Exportación de Información_ (Exporting information), you can download the features that you want directly in a `csv` file. My idea was to try to do this automatically from `R`, but it never worked for me, not even manually. The following image shows that menu:
+![03](../webpages_images/03_csv.png)
+
+Finally, you can also download the tables in `pdf` files. I found a package in R that could help to obtain the information from tables in `pdf`, however, not all the information is available in `pdf`.
+
+I send an email message to Diego Valle. He told me that he decided to create those plots precisely because the [goverment webpage](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva) never works. He send me his code in `Python` and he highlighted that he is constantly checking for new information and he extracts very little pieces of information since the wepages crashes otherwise. 
+
+I decided then to use the data directly from [Diego Valle's website](http://crimenmexico.diegovalle.net/en/csv/).
 
 Some plots
 ---------------------------------------------------
