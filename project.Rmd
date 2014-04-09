@@ -23,7 +23,7 @@ According to the Federal Attorney General of Mexico, the data is categorized in 
   - Offenses against property.
   - Sexual crimes
   - Homicides.
-  - Lesiones.
+  - Injuries.
   - Kidnapping.
   - Common robbery.
   - Cattle raiding.
@@ -31,7 +31,7 @@ According to the Federal Attorney General of Mexico, the data is categorized in 
   - Robbery in banks
   - Others.
 
-Data extraction and complications
+Data extraction and associated complications
 -------------------------------------------------
 
 The data extraction turned out to be more difficult than I thought. The website of [Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva) displays the following menu (it is in Spanish, but most of the words are cognates):
@@ -49,7 +49,211 @@ Finally, you can also download the tables in `pdf` files. I found a package in R
 
 I send an email message to Diego Valle. He told me that he decided to create those plots precisely because the [goverment webpage](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva) never works. He send me his code in `Python` and he highlighted that he is constantly checking for new information and he extracts very little pieces of information since the wepages crashes otherwise. 
 
-I decided then to use the data directly from [Diego Valle's website](http://crimenmexico.diegovalle.net/en/csv/).
+I decided then to use the data directly from [Diego Valle's website](http://crimenmexico.diegovalle.net/en/csv/). If I have time, I will work downloading the data by myself once I finish the other thing I want to do.
 
-Some plots
+The work so far
 ---------------------------------------------------
+
+```{r}
+
+
+##############################################################################################
+##############################################################################################
+
+library("ggplot2")
+library("plyr")
+library("dplyr")
+library("lubridate")
+library("maptools")
+
+# ### Download directly
+# federal.link <- "http://crimenmexico.diegovalle.net/en/csv/fuero-federal-estados.csv.gz"
+# common.link <- "http://crimenmexico.diegovalle.net/en/csv/fuero-comun-estados.csv.gz"
+# con <- gzcon(url(federal.link))
+# txt <- readLines(con)
+# dat <- read.csv(textConnection(txt))
+
+### Reading data
+dat <- read.csv(gzfile("../data/fuero-comun-estados.csv.gz")) %.% tbl_df()
+
+# str(dat)
+# names(dat)
+
+dat <- filter(dat, crime != "OTROS DELITOS") %.% # Filter "other crimes"
+  mutate(date = ymd(paste(year, month, "01", sep = "-"))) %.% # Adding date
+  group_by(year, month, crime, date)
+
+
+### This is the first day of goverment period for recorded data, i.e.,
+## We have data starting on 1997. That president started his period on 1994-12-01
+day0 <- ymd("1994-12-01")
+
+
+## Now we add days of goverment and period of goverment.
+aux <- function(date)
+{
+  ## Aux function to determine the period.
+  ## Receives date type argument
+  val <- ifelse(date < day0 + years(6), 0,
+                ifelse(date < day0 + years(2*6), 1,
+                       ifelse(date < day0 + years(3*6), 2, 
+                              3)
+                )
+  )
+  
+  return(val)
+}
+
+dat <- mutate(dat, period.code = aux(date),
+              days = as.numeric(date - years(period.code*6) - day0),
+              party = c("PAN", "PRI")[((period.code == 0) | (period.code == 3)) + 1]) %.%
+  group_by(period.code, days, party)
+rm(aux)
+
+## We also have to add the right state code, it is wrong beacuse the 'ch'
+## is no longer considered "letter" in the Spanish diccitionary
+aux <- function(code) 
+{
+  code[(code == 5) | (code == 6)] <- -1*(code[(code == 5) | (code == 6)] + 2)
+  code[(code == 7) | (code == 8)] <- code[(code == 7) | (code == 8)] - 2
+  code[code < 0] <- -code[code < 0]
+  
+  return(code)
+}
+dat <- mutate(dat, state_code = aux(state_code))
+
+## Creating table by states and adding 
+state.wise <- summarise(group_by(dat, state_code, population), 
+                        total = sum(count, na.rm = T)) %.%
+  mutate(total.rate = 10000*total/population)  
+
+## Same for the whole country
+pop <- (dat %.% summarise(pop =  sum(unique(population))))$pop #  Population
+national <- summarise(dat, total = sum(count, na.rm = T))
+national$total.rate <- 10000*national$total/pop
+
+
+### Sexual offenses
+qplot(date, total.rate, 
+      data = filter(national, crime == "DELITOS SEXUALES"), geom = "line")
+
+### Homicides
+qplot(days, total.rate, 
+      data = filter(national, crime == "HOMICIDIOS"), 
+      geom = "line", col = as.factor(period.code)) +
+  ggtitle("Homicides rate by days of goverment")
+
+### Homicides
+qplot(date, total.rate, 
+      data = filter(national, crime == "HOMICIDIOS"), 
+      geom = "line", col = as.factor(period.code)) +
+  ggtitle("Homicides rate by date")
+
+
+
+# ##### Extracting polygons and saving data.frame, so it will not be run again.
+# xx <- readShapeSpatial("../mexico/MEX_adm1.shp")
+# xxx <- thinnedSpatialPoly(as(xx, "SpatialPolygons"), tolerance = 0.1, minarea = 0.0005, 
+#                           topologyPreserve = TRUE)
+# extractPolygons <- function(shapes) {
+#   require(plyr)
+#   
+#   dframe <- ldply(1:length(shapes@polygons), function(i) {
+#     ob <- shapes@polygons[[i]]@Polygons
+#     dframe <- ldply(1:length(ob), function(j) {
+#       x <- ob[[j]]
+#       co <- x@coords
+#       data.frame(co, order = 1:nrow(co), group = j)
+#     })
+#     dframe$region <- i
+#     dframe
+#   })
+#   # construct a group variable from both group and polygon:
+#   dframe$group <- interaction(dframe$region, dframe$group)
+#   
+#   dframe
+# }
+# mex <- extractPolygons(xxx)
+# write.csv(mex, "../mexico/polygons.csv")
+
+mex <- read.csv("../mexico/polygons.csv")[, -1]
+
+head(mex)
+unique(mex$re)
+
+## Associating value with response
+value <- (filter(state.wise, month == 1, 
+       year == 2009, crime == "HOMICIDIOS") %.% 
+         arrange(state_code))$total.rate
+
+homicides.2009.1 <- mutate(mex, value = value[region])
+
+qplot(x, y, order = order, group = group, data = homicides.2009.1, 
+      geom = "polygon", fill = value) + 
+  scale_fill_gradient(low='white', high='darkred') +
+  ggtitle("Homicides rate in Mexico during Jan. 2009")
+
+value <- (filter(state.wise, month == 1, 
+                 year == 2014, crime == "HOMICIDIOS") %.% 
+            arrange(state_code))$total.rate
+homicides.2014.1 <- mutate(mex, value = value[region])
+qplot(x, y, order = order, group = group, data = homicides.2014.1, 
+      geom = "polygon", fill = value) + 
+  scale_fill_gradient(low='white', high='darkred') +
+  ggtitle("Homicides rate in Mexico during Jan. 2014")
+
+homicides <- rbind(cbind(homicides.2014.1, date = "Jan 2014"),
+                   cbind(homicides.2009.1, date = "Jan 2009")) %.%
+  as.data.frame()
+
+qplot(x, y, order = order, group = group, data = homicides, 
+       geom = "polygon", fill = value, facets = ~ date) + 
+  scale_fill_gradient(low='white', high='darkred') 
+
+###################################################
+### Part of the trials for downloading the data
+###################################################
+# 
+# library(XML) ## Loading library to read websites.
+# 
+# ## Main Page
+# url <- "http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva"
+# ## Crimes page
+# url <- "http://www.incidenciadelictiva.secretariadoejecutivo.gob.mx/wdelito/"
+# 
+# ## Selecting periods page: Fuero Federal
+# 
+# ## This does not contain the information.
+# url <- "http://estadisticadelictiva.secretariadoejecutivo.gob.mx/mondrian/testpage.jsp"
+# 
+# ## Year, state and month
+# url <- "http://estadisticadelictiva.secretariadoejecutivo.gob.mx/mondrian/testpage.jsp?query=anio_ent_mes_ff"
+# 
+# 
+# ## All crime types
+# url <- "http://estadisticadelictiva.secretariadoejecutivo.gob.mx/mondrian/"
+# 
+# ## Parsing the site
+# doc <- htmlParse(url)
+# 
+# ## Obtaining root
+# root <- xmlRoot(doc)
+# 
+# ## Some numbers to look at
+# length(xmlChildren(root)) ## Two elements in the structure
+# names(xmlChildren(root)) ## Names of the two elements
+# length(xmlChildren(xmlChildren(root)[[2]]))
+# 
+# ## Selecting body children
+# body <- xmlChildren(xmlChildren(root)[[2]])
+# 
+# names(body)
+# 
+# body
+# 
+# download.file("http://www.secretariadoejecutivo.gob.mx/work/models/SecretariadoEjecutivo/Resource/131/1/images/publicacionFebrero2014_032014.pdf", "mes.pdf")
+# 
+# getNodeSet(root, "//*")
+```
+
+
