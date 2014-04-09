@@ -73,7 +73,7 @@ library("maptools")
 # txt <- readLines(con)
 # dat <- read.csv(textConnection(txt))
 
-### Reading data
+### Reading data.
 dat <- read.csv(gzfile("../data/fuero-comun-estados.csv.gz")) %.% tbl_df()
 
 # str(dat)
