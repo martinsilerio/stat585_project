@@ -36,37 +36,37 @@ Data extraction and associated complications
 
 The data extraction turned out to be more difficult than I thought. The website of [Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva) displays the following menu (it is in Spanish, but most of the words are cognates):
 
-![02](../webpages_images/02_menu.png)
+![02](./webpages_images/02_menu.png)
 
 If the first option is selected, _Herramientas de Análisis_  (Analysis tools), you can create plots for the features and also download the data you are plotting, however, it never works well. The next image is a screenshot the site.
 
-![04](../webpages_images/04_analysis.png)
+![04](./webpages_images/04_analysis.png)
 
 If you select the option _Exportación de Información_ (Exporting information), you can download the features that you want directly in a `csv` file. My idea was to try to do this automatically from `R`, but it never worked for me, not even manually. The following image shows that menu:
-![03](../webpages_images/03_csv.png)
+![03](./webpages_images/03_csv.png)
 
 Finally, you can also download the tables in `pdf` files. I found a package in R that could help to obtain the information from tables in `pdf`, however, not all the information is available in `pdf`.
 
-I send an email message to Diego Valle. He told me that he decided to create those plots precisely because the [goverment webpage](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva) never works. He send me his code in `Python` and he highlighted that he is constantly checking for new information and he extracts very little pieces of information since the wepages crashes otherwise. 
+I sent an email message to Diego Valle. He told me that he decided to create those plots precisely because the [goverment webpage](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva) never works. He send me his code in `Python` and he highlighted that he is constantly checking for new information and he extracts very little pieces of information since the wepages crashes otherwise. 
 
 I decided then to use the data directly from [Diego Valle's website](http://crimenmexico.diegovalle.net/en/csv/). If I have time, I will work downloading the data by myself once I finish the other thing I want to do.
 
 The work so far
 ---------------------------------------------------
 
+Loading packages that will be used.
 ```{r}
+suppressPackageStartupMessages(library("ggplot2"))
+suppressPackageStartupMessages(library("plyr"))
+suppressPackageStartupMessages(library("dplyr"))
+suppressPackageStartupMessages(library("lubridate"))
+```
 
+Then we read the data and create a date-type variable.
 
-##############################################################################################
-##############################################################################################
-
-library("ggplot2")
-library("plyr")
-library("dplyr")
-library("lubridate")
-library("maptools")
-
-# ### Download directly
+```{r reading, cache = TRUE}
+# ### Download directly. It takes a lot of time
+# ### Do not run!
 # federal.link <- "http://crimenmexico.diegovalle.net/en/csv/fuero-federal-estados.csv.gz"
 # common.link <- "http://crimenmexico.diegovalle.net/en/csv/fuero-comun-estados.csv.gz"
 # con <- gzcon(url(federal.link))
@@ -74,7 +74,7 @@ library("maptools")
 # dat <- read.csv(textConnection(txt))
 
 ### Reading data.
-dat <- read.csv(gzfile("../data/fuero-comun-estados.csv.gz")) %.% tbl_df()
+dat <- read.csv(gzfile("./data/fuero-comun-estados.csv.gz")) %.% tbl_df()
 
 # str(dat)
 # names(dat)
@@ -82,12 +82,16 @@ dat <- read.csv(gzfile("../data/fuero-comun-estados.csv.gz")) %.% tbl_df()
 dat <- filter(dat, crime != "OTROS DELITOS") %.% # Filter "other crimes"
   mutate(date = ymd(paste(year, month, "01", sep = "-"))) %.% # Adding date
   group_by(year, month, crime, date)
+```
 
+Each presidential term lasts six years. We have to associate with each date the days that the corresponding president has ruled the country and the political party. 
 
+On the other hand, we also have to correct the state codes, since there are states with the worng labels. Since the Spanish diccionary does not longer consider the _ch_ combination as a letter, so the alphabetical order of the states is slightly different.
+
+```{r, dependson= "reading", cache = TRUE}
 ### This is the first day of goverment period for recorded data, i.e.,
 ## We have data starting on 1997. That president started his period on 1994-12-01
 day0 <- ymd("1994-12-01")
-
 
 ## Now we add days of goverment and period of goverment.
 aux <- function(date)
@@ -99,8 +103,7 @@ aux <- function(date)
                        ifelse(date < day0 + years(3*6), 2, 
                               3)
                 )
-  )
-  
+  ) 
   return(val)
 }
 
@@ -121,6 +124,13 @@ aux <- function(code)
   return(code)
 }
 dat <- mutate(dat, state_code = aux(state_code))
+rm(aux)
+
+```
+
+Finally, 
+
+```{r code, cache = TRUE}
 
 ## Creating table by states and adding 
 state.wise <- summarise(group_by(dat, state_code, population), 
@@ -131,11 +141,6 @@ state.wise <- summarise(group_by(dat, state_code, population),
 pop <- (dat %.% summarise(pop =  sum(unique(population))))$pop #  Population
 national <- summarise(dat, total = sum(count, na.rm = T))
 national$total.rate <- 10000*national$total/pop
-
-
-### Sexual offenses
-qplot(date, total.rate, 
-      data = filter(national, crime == "DELITOS SEXUALES"), geom = "line")
 
 ### Homicides
 qplot(days, total.rate, 
@@ -152,6 +157,7 @@ qplot(date, total.rate,
 
 
 # ##### Extracting polygons and saving data.frame, so it will not be run again.
+# library("maptools")
 # xx <- readShapeSpatial("../mexico/MEX_adm1.shp")
 # xxx <- thinnedSpatialPoly(as(xx, "SpatialPolygons"), tolerance = 0.1, minarea = 0.0005, 
 #                           topologyPreserve = TRUE)
@@ -176,7 +182,7 @@ qplot(date, total.rate,
 # mex <- extractPolygons(xxx)
 # write.csv(mex, "../mexico/polygons.csv")
 
-mex <- read.csv("../mexico/polygons.csv")[, -1]
+mex <- read.csv("./mexico/polygons.csv")[, -1]
 
 head(mex)
 unique(mex$re)
@@ -188,23 +194,13 @@ value <- (filter(state.wise, month == 1,
 
 homicides.2009.1 <- mutate(mex, value = value[region])
 
-qplot(x, y, order = order, group = group, data = homicides.2009.1, 
-      geom = "polygon", fill = value) + 
-  scale_fill_gradient(low='white', high='darkred') +
-  ggtitle("Homicides rate in Mexico during Jan. 2009")
-
 value <- (filter(state.wise, month == 1, 
                  year == 2014, crime == "HOMICIDIOS") %.% 
             arrange(state_code))$total.rate
 homicides.2014.1 <- mutate(mex, value = value[region])
-qplot(x, y, order = order, group = group, data = homicides.2014.1, 
-      geom = "polygon", fill = value) + 
-  scale_fill_gradient(low='white', high='darkred') +
-  ggtitle("Homicides rate in Mexico during Jan. 2014")
 
 homicides <- rbind(cbind(homicides.2014.1, date = "Jan 2014"),
-                   cbind(homicides.2009.1, date = "Jan 2009")) %.%
-  as.data.frame()
+                   cbind(homicides.2009.1, date = "Jan 2009")) 
 
 qplot(x, y, order = order, group = group, data = homicides, 
        geom = "polygon", fill = value, facets = ~ date) + 
