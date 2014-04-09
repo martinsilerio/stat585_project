@@ -88,7 +88,7 @@ Each presidential term lasts six years. We have to associate with each date the 
 
 On the other hand, we also have to correct the state codes, since there are states with the worng labels. Since the Spanish diccionary does not longer consider the _ch_ combination as a letter, so the alphabetical order of the states is slightly different.
 
-```{r, dependson= "reading", cache = TRUE}
+```{r fixing, dependson= "reading", cache = TRUE}
 ### This is the first day of goverment period for recorded data, i.e.,
 ## We have data starting on 1997. That president started his period on 1994-12-01
 day0 <- ymd("1994-12-01")
@@ -128,9 +128,9 @@ rm(aux)
 
 ```
 
-Finally, 
+Finally, we create the tables by states and national summarising different crime types.
 
-```{r code, cache = TRUE}
+```{r tables, dependson= "reading", cache= TRUE}
 
 ## Creating table by states and adding 
 state.wise <- summarise(group_by(dat, state_code, population), 
@@ -141,51 +141,66 @@ state.wise <- summarise(group_by(dat, state_code, population),
 pop <- (dat %.% summarise(pop =  sum(unique(population))))$pop #  Population
 national <- summarise(dat, total = sum(count, na.rm = T))
 national$total.rate <- 10000*national$total/pop
+```
 
+The first plot shows the homicides rates (per 10000 person) by days of goverment. I will fix the labels, but 
+- period.code = 0 is the period from 1994 to 2000,
+- period.code = 1 is the period from 2000 to 2006,
+- period.code = 2 is the period from 2006 to 2012 and
+- period.code = 3 is the period from 2012 to now.
+
+```{r, dependson= "tables", cache=TRUE, fig.height= 6, fig.width= 9}
 ### Homicides
 qplot(days, total.rate, 
       data = filter(national, crime == "HOMICIDIOS"), 
       geom = "line", col = as.factor(period.code)) +
   ggtitle("Homicides rate by days of goverment")
+```
 
+Same crime, but now continuously.
+
+```{r, dependson= "tables", cache=TRUE, fig.height= 6, fig.width= 9}
 ### Homicides
 qplot(date, total.rate, 
       data = filter(national, crime == "HOMICIDIOS"), 
       geom = "line", col = as.factor(period.code)) +
   ggtitle("Homicides rate by date")
+```
 
+The following is the code used to extract the polygons, then I saved the data frame. Do NOT run.
 
+```{r, eval= FALSE}
+##### Extracting polygons and saving data.frame, so it will not be run again.
+library("maptools")
+xx <- readShapeSpatial("../mexico/MEX_adm1.shp")
+xxx <- thinnedSpatialPoly(as(xx, "SpatialPolygons"), tolerance = 0.1, minarea = 0.0005, 
+                          topologyPreserve = TRUE)
+extractPolygons <- function(shapes) {
+  require(plyr)
+  
+  dframe <- ldply(1:length(shapes@polygons), function(i) {
+    ob <- shapes@polygons[[i]]@Polygons
+    dframe <- ldply(1:length(ob), function(j) {
+      x <- ob[[j]]
+      co <- x@coords
+      data.frame(co, order = 1:nrow(co), group = j)
+    })
+    dframe$region <- i
+    dframe
+  })
+  # construct a group variable from both group and polygon:
+  dframe$group <- interaction(dframe$region, dframe$group)
+  
+  dframe
+}
+mex <- extractPolygons(xxx)
+write.csv(mex, "../mexico/polygons.csv")
+```
 
-# ##### Extracting polygons and saving data.frame, so it will not be run again.
-# library("maptools")
-# xx <- readShapeSpatial("../mexico/MEX_adm1.shp")
-# xxx <- thinnedSpatialPoly(as(xx, "SpatialPolygons"), tolerance = 0.1, minarea = 0.0005, 
-#                           topologyPreserve = TRUE)
-# extractPolygons <- function(shapes) {
-#   require(plyr)
-#   
-#   dframe <- ldply(1:length(shapes@polygons), function(i) {
-#     ob <- shapes@polygons[[i]]@Polygons
-#     dframe <- ldply(1:length(ob), function(j) {
-#       x <- ob[[j]]
-#       co <- x@coords
-#       data.frame(co, order = 1:nrow(co), group = j)
-#     })
-#     dframe$region <- i
-#     dframe
-#   })
-#   # construct a group variable from both group and polygon:
-#   dframe$group <- interaction(dframe$region, dframe$group)
-#   
-#   dframe
-# }
-# mex <- extractPolygons(xxx)
-# write.csv(mex, "../mexico/polygons.csv")
+Now we display two maps to make a comparison between two periods of time for the same crime.
 
+```{r, dependson= "tables", cache = TRUE, fig.height= 7, fig.width= 13}
 mex <- read.csv("./mexico/polygons.csv")[, -1]
-
-head(mex)
-unique(mex$re)
 
 ## Associating value with response
 value <- (filter(state.wise, month == 1, 
@@ -205,10 +220,13 @@ homicides <- rbind(cbind(homicides.2014.1, date = "Jan 2014"),
 qplot(x, y, order = order, group = group, data = homicides, 
        geom = "polygon", fill = value, facets = ~ date) + 
   scale_fill_gradient(low='white', high='darkred') 
+```
 
-###################################################
+This is use code is used when I was exploring the website to download the data.
+```{r code, eval = FALSE}
+###
 ### Part of the trials for downloading the data
-###################################################
+###
 # 
 # library(XML) ## Loading library to read websites.
 # 
@@ -251,5 +269,6 @@ qplot(x, y, order = order, group = group, data = homicides,
 # 
 # getNodeSet(root, "//*")
 ```
+
 
 
