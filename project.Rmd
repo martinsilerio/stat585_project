@@ -199,7 +199,7 @@ write.csv(mex, "../mexico/polygons.csv")
 
 Now we display two maps to make a comparison between two periods of time for the same crime.
 
-```{r, dependson= "tables", cache = TRUE, fig.height= 7, fig.width= 13}
+```{r maps, dependson= "tables", cache = TRUE, fig.height= 7, fig.width= 13}
 mex <- read.csv("./mexico/polygons.csv")[, -1]
 
 ## Associating value with response
@@ -217,10 +217,21 @@ homicides.2014.1 <- mutate(mex, value = value[region])
 homicides <- rbind(cbind(homicides.2014.1, date = "Jan 2014"),
                    cbind(homicides.2009.1, date = "Jan 2009")) 
 
-qplot(x, y, order = order, group = group, data = homicides, 
-       geom = "polygon", fill = value, facets = ~ date) + 
-  scale_fill_gradient(low='white', high='darkred') 
+ggplot(data = homicides, aes(x, y)) +
+    geom_polygon(col = "darkred", aes(order = order, group = group, 
+       fill = value)) +
+    facet_wrap(~ date) +
+  scale_fill_gradient(low='white', high='darkred')
 ```
+
+I will try now to do it in `ggvis`.
+```{r , dependson= "maps", fig.height= 7, fig.width= 13}
+suppressPackageStartupMessages(library("ggvis"))
+
+ggvis(homicides.2014.1, props(x= ~x, y= ~y)) +
+    layer_path(data= by_group(group))
+```
+
 
 This is use code is used when I was exploring the website to download the data.
 ```{r code, eval = FALSE}
