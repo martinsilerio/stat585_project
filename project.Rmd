@@ -173,7 +173,7 @@ The following is the code used to extract the polygons, then I saved the data fr
 ##### Extracting polygons and saving data.frame, so it will not be run again.
 library("maptools")
 xx <- readShapeSpatial("../mexico/MEX_adm1.shp")
-xxx <- thinnedSpatialPoly(as(xx, "SpatialPolygons"), tolerance = 0.1, minarea = 0.0005, 
+xxx <- thinnedSpatialPoly(as(xx, "SpatialPolygons"), tolerance = 0.05, minarea = 0.0005, 
                           topologyPreserve = TRUE)
 extractPolygons <- function(shapes) {
   require(plyr)
