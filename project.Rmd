@@ -74,14 +74,16 @@ Then we read the data and create a date-type variable.
 # dat <- read.csv(textConnection(txt))
 
 ### Reading data.
-dat <- read.csv(gzfile("./data/fuero-comun-estados.csv.gz")) %.% tbl_df()
+common <- read.csv(gzfile("./data/fuero-comun-estados.csv.gz")) %.% tbl_df() #Common
+federal <- read.csv(gzfile("./data/fuero-federal-estados.csv.gz")) %.% tbl_df() #Federal
 
-# str(dat)
-# names(dat)
-
-dat <- filter(dat, crime != "OTROS DELITOS") %.% # Filter "other crimes"
+common <- filter(common, crime != "OTROS DELITOS") %.% # Filter "other crimes"
   mutate(date = ymd(paste(year, month, "01", sep = "-"))) %.% # Adding date
   group_by(year, month, crime, date)
+federal <- federal %.% 
+  mutate(date = ymd(paste(year, month, "01", sep = "-"))) %.% # Adding date
+  group_by(year, month, crime, date)
+
 ```
 
 Each presidential term lasts six years. We have to associate with each date the days that the corresponding president has ruled the country and the political party. 
@@ -130,7 +132,7 @@ rm(aux)
 
 Finally, we create the tables by states and national summarising different crime types.
 
-```{r tables, dependson= "reading", cache= TRUE}
+```{r tables, dependson= "fixing", cache= TRUE}
 
 ## Creating table by states and adding 
 state.wise <- summarise(group_by(dat, state_code, population), 
@@ -280,6 +282,19 @@ This is use code is used when I was exploring the website to download the data.
 # 
 # getNodeSet(root, "//*")
 ```
+
+Selecting crimes
+------------------------------------
+There are many categories and subcategories of crimes. For the purpose of this work, I am going to select those that I consider more related with violence or drugs.
+
+In this part, I will also translate the crime names to English.
+```{r selecting, dependson= "maps", eval = FALSE}
+dat
+
+unique(dat$crime)
+
+```
+
 
 Remaining work
 -------------------------------------
