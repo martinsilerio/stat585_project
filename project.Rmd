@@ -60,9 +60,15 @@ suppressPackageStartupMessages(library("ggplot2"))
 suppressPackageStartupMessages(library("plyr"))
 suppressPackageStartupMessages(library("dplyr"))
 suppressPackageStartupMessages(library("lubridate"))
+suppressPackageStartupMessages(library("car"))
 ```
 
-Then we read the data and create a date-type variable.
+Reading data and creating a unique database
+------------------------------------
+
+As I said before, there are two major categories of crimes: Common and Federal. Both have different levels of crime, category, type and subtype. I am going to keep the crime, category and type columns.
+I am also going to translate the names to English.
+
 
 ```{r reading, cache = TRUE}
 # ### Download directly. It takes a lot of time
@@ -76,6 +82,43 @@ Then we read the data and create a date-type variable.
 ### Reading data.
 common <- read.csv(gzfile("./data/fuero-comun-estados.csv.gz")) %.% tbl_df() #Common
 federal <- read.csv(gzfile("./data/fuero-federal-estados.csv.gz")) %.% tbl_df() #Federal
+
+## Common
+sp.names <- common$crime %.% unique() %.% as.character() ## Spanish names
+en.names <- c("Property_crimes", ## English names
+              "Sexual_crimes",
+              "Homicides",
+              "Injuries",
+              "Other_crimes",
+              "Kidnapping",
+              "Robbery")
+
+string <- paste0("es.names[", 1:length(es.names), "] = ", 
+                 "en.names[", 1:length(es.names), "]", collapse = '; ')
+
+change <- recode(common$crime, string)
+
+
+
+unique(federal$law)
+
+common
+
+aux <- as.character(unique(federal$law)[1])
+
+filter(federal, law == aux)$category %.% unique()
+
+### Violated law or crime: categories
+## I will do it one by one so it is more clear.
+
+## Federal Crime Code, heal
+
+## Federal Firearms and Explosives
+category <- (federal$law == as.character(unique(federal$law)[2]))
+federal$crimeOrLaw[category] <- "Law : Federal Firearms and Explosives"
+
+## Federal 
+
 
 common <- filter(common, crime != "OTROS DELITOS") %.% # Filter "other crimes"
   mutate(date = ymd(paste(year, month, "01", sep = "-"))) %.% # Adding date
@@ -281,18 +324,6 @@ This is use code is used when I was exploring the website to download the data.
 # download.file("http://www.secretariadoejecutivo.gob.mx/work/models/SecretariadoEjecutivo/Resource/131/1/images/publicacionFebrero2014_032014.pdf", "mes.pdf")
 # 
 # getNodeSet(root, "//*")
-```
-
-Selecting crimes
-------------------------------------
-There are many categories and subcategories of crimes. For the purpose of this work, I am going to select those that I consider more related with violence or drugs.
-
-In this part, I will also translate the crime names to English.
-```{r selecting, dependson= "maps", eval = FALSE}
-dat
-
-unique(dat$crime)
-
 ```
 
 
