@@ -83,7 +83,7 @@ I am also going to translate the names to English.
 common <- read.csv(gzfile("./data/fuero-comun-estados.csv.gz")) %.% tbl_df() #Common
 federal <- read.csv(gzfile("./data/fuero-federal-estados.csv.gz")) %.% tbl_df() #Federal
 
-## Common
+## Common: crime
 sp.names <- common$crime %.% unique() %.% as.character() ## Spanish names
 en.names <- c("Property_crimes", ## English names
               "Sexual_crimes",
@@ -92,40 +92,126 @@ en.names <- c("Property_crimes", ## English names
               "Other_crimes",
               "Kidnapping",
               "Robbery")
+string <- paste0("sp.names[", 1:length(sp.names), "] = ", 
+                 "en.names[", 1:length(sp.names), "]", collapse = '; ')
+common$crime <- recode(common$crime, string)
 
-string <- paste0("es.names[", 1:length(es.names), "] = ", 
-                 "en.names[", 1:length(es.names), "]", collapse = '; ')
+## Common: category
+sp.names <- common$category %.% unique() %.% as.character() ## Spanish names
+en.names <- c("Property_crimes", ## English names
+              "Sexual_crimes_(violation)",
+              "Homicides",
+              "Injuries",
+              "Other_crimes",
+              "Kidnapping",
+              "Common_robbery",
+              "Rustling",
+              "Highway_robbery",
+              "Bank_robbery")
+string <- paste0("sp.names[", 1:length(sp.names), "] = ", 
+                 "en.names[", 1:length(sp.names), "]", collapse = '; ')
+common$category <- recode(common$category, string)
 
-change <- recode(common$crime, string)
+# ## Common: type
+# sp.names <- common$type %.% unique() %.% as.character() ## Spanish names
+# en.names <- c("Breach_of_trust",
+#               "Property_crimes", ## English names
+#               "Offense_of_dispossession",
+#               "Extortion",
+#               "Fraud",
+#               "Sexual_crimes_(violation)",
+#               "Guilty",
+#               "By_negligence",
+#               "Guilty",
+#               "By_negligence",
+#               "Threats",
+#               "Staturory_rape",
+#               "Other_sexual",
+#               "Other_crimes",
+#               "Kidnapping",
+#               "With_violence",
+#               "Without_violence",
+#               "Rustling")
+# string <- paste0("sp.names[", 1:length(sp.names), "] = ", 
+#                  "en.names[", 1:length(sp.names), "]", collapse = '; ')
+# common$type <- recode(common$type, string)
 
-
-
-unique(federal$law)
-
+## Delete type and sub-type
+common <- common[, -(6:7)]
 common
 
-aux <- as.character(unique(federal$law)[1])
+## Federal: crime
+sp.names <- federal$crime %.% unique() %.% as.character() ## Spanish names
+en.names <- c("Against_health",
+              "Other_crimes",
+              "Historical_information",
+              "Federal_Act_against_organized_crime",
+              "General_health_Act",
+              "Other_laws")
+string <- paste0("sp.names[", 1:length(sp.names), "] = ", 
+                 "en.names[", 1:length(sp.names), "]", collapse = '; ')
+federal$crime <- recode(federal$crime, string)
 
-filter(federal, law == aux)$category %.% unique()
+## Federal: category
+sp.names <- federal$category %.% unique() %.% as.character() ## Spanish names
+en.names <- c("Trade",
+              "Other",
+              "Possession",
+              "Production",
+              "Suply",
+              "Traffic",
+              "Transportation",
+              "AVGC(1997-2011)",
+              "Against_public_official",
+              "Against_the_environment", #10
+              "Against_body",
+              "Electoral",
+              "Copyrights",
+              "Counterfeiting",
+              "Other",
+              "Other",
+              "Property",
+              "Copyrights",
+              "Roads",
+              "Criminal_association(1997-2011)", #20
+              "Vehicle_transportation(1999-2007)",
+              "Highway_robbery",
+              "Against_health",
+              "LFCDO(2001-2011)",
+              "Other",
+              "Drug_dealing",
+              "Other",
+              "Federal_tax_code",
+              "Industrial_property",
+              "Migration", #30
+              "Roads",
+              "Federal_firearms_and_explosives",
+              "Copyrights",
+              "Law_of_credit_and_insurance",
+              "Other",
+              "Other"
+              )
+string <- paste0("sp.names[", 1:length(sp.names), "] = ", 
+                 "en.names[", 1:length(sp.names), "]", collapse = '; ')
+federal$category <- recode(federal$category, string)
 
-### Violated law or crime: categories
-## I will do it one by one so it is more clear.
+## Get rid of Law
+federal <- federal[, -4]
 
-## Federal Crime Code, heal
+## Adding common or Federal
+common$law <- "common"
+federal$law <- "Federal"
 
-## Federal Firearms and Explosives
-category <- (federal$law == as.character(unique(federal$law)[2]))
-federal$crimeOrLaw[category] <- "Law : Federal Firearms and Explosives"
+## Merging data-sets
+data <- rbind(common, federal)
 
-## Federal 
+## Deleting variables
+rm(common, federal, en.names, sp.names, string)
 
-
-common <- filter(common, crime != "OTROS DELITOS") %.% # Filter "other crimes"
+## 
+data <- data %.%
   mutate(date = ymd(paste(year, month, "01", sep = "-"))) %.% # Adding date
-  group_by(year, month, crime, date)
-federal <- federal %.% 
-  mutate(date = ymd(paste(year, month, "01", sep = "-"))) %.% # Adding date
-  group_by(year, month, crime, date)
+  group_by(year, month, crime, category, date)
 
 ```
 
@@ -133,7 +219,7 @@ Each presidential term lasts six years. We have to associate with each date the 
 
 On the other hand, we also have to correct the state codes, since there are states with the worng labels. Since the Spanish diccionary does not longer consider the _ch_ combination as a letter, so the alphabetical order of the states is slightly different.
 
-```{r fixing, dependson= "reading", cache = TRUE}
+```{r fixing, dependson= "reading", cache = TRUE, eval=FALSE}
 ### This is the first day of goverment period for recorded data, i.e.,
 ## We have data starting on 1997. That president started his period on 1994-12-01
 day0 <- ymd("1994-12-01")
@@ -175,7 +261,7 @@ rm(aux)
 
 Finally, we create the tables by states and national summarising different crime types.
 
-```{r tables, dependson= "fixing", cache= TRUE}
+```{r tables, dependson= "fixing", cache= TRUE, eval=FALSE}
 
 ## Creating table by states and adding 
 state.wise <- summarise(group_by(dat, state_code, population), 
@@ -194,7 +280,7 @@ The first plot shows the homicides rates (per 10000 person) by days of goverment
 - period.code = 2 is the period from 2006 to 2012 and
 - period.code = 3 is the period from 2012 to now.
 
-```{r, dependson= "tables", cache=TRUE, fig.height= 6, fig.width= 9}
+```{r, dependson= "tables", cache=TRUE, fig.height= 6, fig.width= 9, eval=FALSE}
 ### Homicides
 qplot(days, total.rate, 
       data = filter(national, crime == "HOMICIDIOS"), 
@@ -204,7 +290,7 @@ qplot(days, total.rate,
 
 Same crime, but now continuously.
 
-```{r, dependson= "tables", cache=TRUE, fig.height= 6, fig.width= 9}
+```{r, dependson= "tables", cache=TRUE, fig.height= 6, fig.width= 9, eval=FALSE}
 ### Homicides
 qplot(date, total.rate, 
       data = filter(national, crime == "HOMICIDIOS"), 
@@ -244,7 +330,7 @@ write.csv(mex, "../mexico/polygons.csv")
 
 Now we display two maps to make a comparison between two periods of time for the same crime.
 
-```{r maps, dependson= "tables", cache = TRUE, fig.height= 7, fig.width= 13}
+```{r maps, dependson= "tables", cache = TRUE, fig.height= 7, fig.width= 13, eval=FALSE}
 mex <- read.csv("./mexico/polygons.csv")[, -1]
 
 ## Associating value with response
@@ -270,7 +356,7 @@ ggplot(data = homicides, aes(x, y)) +
 ```
 
 I will try now to do it in `ggvis`.
-```{r , dependson= "maps", fig.height= 7, fig.width= 13}
+```{r , dependson= "maps", fig.height= 7, fig.width= 13, eval=FALSE}
 suppressPackageStartupMessages(library("ggvis"))
 
 ggvis(homicides.2014.1, props(x= ~x, y= ~y)) +
