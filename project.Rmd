@@ -138,7 +138,6 @@ common$category <- recode(common$category, string)
 
 ## Delete type and sub-type
 common <- common[, -(6:7)]
-common
 
 ## Federal: crime
 sp.names <- federal$crime %.% unique() %.% as.character() ## Spanish names
@@ -219,7 +218,7 @@ Each presidential term lasts six years. We have to associate with each date the 
 
 On the other hand, we also have to correct the state codes, since there are states with the worng labels. Since the Spanish diccionary does not longer consider the _ch_ combination as a letter, so the alphabetical order of the states is slightly different.
 
-```{r fixing, dependson= "reading", cache = TRUE, eval=FALSE}
+```{r fixing, dependson= "reading", cache = TRUE}
 ### This is the first day of goverment period for recorded data, i.e.,
 ## We have data starting on 1997. That president started his period on 1994-12-01
 day0 <- ymd("1994-12-01")
@@ -234,14 +233,15 @@ aux <- function(date)
                        ifelse(date < day0 + years(3*6), 2, 
                               3)
                 )
-  ) 
+  )
   return(val)
 }
 
-dat <- mutate(dat, period.code = aux(date),
+data <- mutate(data, period.code = aux(date),
               days = as.numeric(date - years(period.code*6) - day0),
               party = c("PAN", "PRI")[((period.code == 0) | (period.code == 3)) + 1]) %.%
   group_by(period.code, days, party)
+
 rm(aux)
 
 ## We also have to add the right state code, it is wrong beacuse the 'ch'
@@ -254,23 +254,22 @@ aux <- function(code)
   
   return(code)
 }
-dat <- mutate(dat, state_code = aux(state_code))
+data <- mutate(data, state_code = aux(state_code))
 rm(aux)
-
 ```
 
 Finally, we create the tables by states and national summarising different crime types.
 
-```{r tables, dependson= "fixing", cache= TRUE, eval=FALSE}
+```{r tables, dependson= "fixing", cache= TRUE}
 
 ## Creating table by states and adding 
-state.wise <- summarise(group_by(dat, state_code, population), 
+state.wise <- summarise(group_by(data, state_code, population), 
                         total = sum(count, na.rm = T)) %.%
   mutate(total.rate = 10000*total/population)  
 
 ## Same for the whole country
-pop <- (dat %.% summarise(pop =  sum(unique(population))))$pop #  Population
-national <- summarise(dat, total = sum(count, na.rm = T))
+pop <- (data %.% summarise(pop =  sum(unique(population))))$pop #  Population
+national <- summarise(data, total = sum(count, na.rm = T))
 national$total.rate <- 10000*national$total/pop
 ```
 
