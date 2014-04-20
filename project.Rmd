@@ -61,6 +61,7 @@ suppressPackageStartupMessages(library("plyr"))
 suppressPackageStartupMessages(library("dplyr"))
 suppressPackageStartupMessages(library("lubridate"))
 suppressPackageStartupMessages(library("car"))
+suppressPackageStartupMessages(library("R.utils")) # To create gz
 ```
 
 Reading data and creating a unique database
@@ -216,7 +217,7 @@ data <- data %.%
 
 Each presidential term lasts six years. We have to associate with each date the days that the corresponding president has ruled the country and the political party. 
 
-On the other hand, we also have to correct the state codes, since there are states with the worng labels. Since the Spanish diccionary does not longer consider the _ch_ combination as a letter, so the alphabetical order of the states is slightly different.
+On the other hand, we also have to correct the state codes, since there are states with the wrong labels. Since the Spanish diccionary does not longer consider the _ch_ combination as a letter, so the alphabetical order of the states is slightly different.
 
 ```{r fixing, dependson= "reading", cache = TRUE}
 ### This is the first day of goverment period for recorded data, i.e.,
@@ -237,10 +238,11 @@ aux <- function(date)
   return(val)
 }
 
-data <- mutate(data, period.code = aux(date),
-              days = as.numeric(date - years(period.code*6) - day0),
-              party = c("PAN", "PRI")[((period.code == 0) | (period.code == 3)) + 1]) %.%
-  group_by(period.code, days, party)
+data <- group_by(data, law) %.%
+  mutate(period.code = aux(date),
+         days = as.numeric(date - years(period.code*6) - day0),
+         party = c("PAN", "PRI")[((period.code == 0) | (period.code == 3)) + 1]) %.%
+  group_by(period.code, days, party, law)
 
 rm(aux)
 
@@ -258,19 +260,37 @@ data <- mutate(data, state_code = aux(state_code))
 rm(aux)
 ```
 
-Finally, we create the tables by states and national summarising different crime types.
+Finally, we create the tables by states and national summarising different crime types. I am also adding the period (displayed as date). Save tables after that.
 
 ```{r tables, dependson= "fixing", cache= TRUE}
 
+## Presitential terms
+per <- paste0(1994 + 6*(0:3), "-12-01 to ", 
+              2000 + 6*(0:3), "-11-30")
+
+## Add column with Presidential terms
+data <- mutate(data, 
+               period = paste0(period.code + 1, ". ",
+                               per[period.code + 1])) %.%
+  group_by(period)
+rm(per)
+
 ## Creating table by states and adding 
-state.wise <- summarise(group_by(data, state_code, population), 
-                        total = sum(count, na.rm = T)) %.%
+state.wise <- group_by(data, state_code, population) %.%
+  summarise(total = sum(count, na.rm = T)) %.%
   mutate(total.rate = 10000*total/population)  
 
 ## Same for the whole country
-pop <- (data %.% summarise(pop =  sum(unique(population))))$pop #  Population
-national <- summarise(data, total = sum(count, na.rm = T))
-national$total.rate <- 10000*national$total/pop
+national <- summarise(data, 
+                      total = sum(count, na.rm = T),
+                      population = sum(unique(population)),
+                      total.rate = 10000*total/population)
+
+## Write and compress
+write.csv(state.wise, file = "./data/states.csv")
+write.csv(national, file = "./data/national.csv")
+gzip("./data/national.csv")
+gzip("./data/states.csv")
 ```
 
 The first plot shows the homicides rates (per 10000 person) by days of goverment. I will fix the labels, but 
