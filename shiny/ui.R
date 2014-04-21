@@ -1,9 +1,11 @@
 library("shiny")
 library("dplyr")
+library("lubridate")
 
 ## Load national data
 national <- read.csv(gzfile("../data/national.csv.gz")) %.% tbl_df() #Common
 all.crimes <- as.character(unique(national$crime))
+range0 <- range(ymd(national$date)) %.% as.character()
 
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
@@ -28,6 +30,11 @@ shinyUI(fluidPage(
                   choices = all.crimes),
       ## Select category
       uiOutput("category"),
+      ## Select date
+      dateRangeInput("dates", 
+                     label = ("Date range"),
+                     start = range0[1],
+                     end = range0[2]),
       ## Rest
     sliderInput("ran",
                 label = "Range of values",
