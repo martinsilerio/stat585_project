@@ -1,8 +1,8 @@
 ## Load national data
-national <- read.csv(gzfile("../data/national.csv.gz")) %.% tbl_df() #Common
-states <- read.csv(gzfile("../data/states.csv.gz")) %.% tbl_df() #Common
-all.crimes <- as.character(unique(national$crime))
-range0 <- range(ymd(national$date)) %.% as.character()
+#national <- read.csv(gzfile("../data/national.csv.gz")) %.% tbl_df() #Common
+#states <- read.csv(gzfile("../data/states.csv.gz")) %.% tbl_df() #Common
+#all.crimes <- as.character(unique(national$crime))
+#range0 <- range(ymd(national$date)) %.% as.character()
 
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
@@ -18,9 +18,7 @@ shinyUI(fluidPage(
                   choices = c("common", "Federal")),      
       ##
       ## Select crime
-      selectInput("crime",
-                  label = "Select crime",
-                  choices = all.crimes),
+      uiOutput("crime"),
       ##
       ## Select category
       uiOutput("category"),
@@ -37,7 +35,8 @@ shinyUI(fluidPage(
     mainPanel(
       textOutput("text2"),
       tabsetPanel(tabPanel("Table", tableOutput("table1")),
-                  tabPanel("By date", plotOutput("plot1"))
+                  tabPanel("Path", plotOutput("plot1")),
+                  tabPanel("Map", plotOutput("map1"))
       ) #tabset
     ) # main
   ) # sidebarLayout
