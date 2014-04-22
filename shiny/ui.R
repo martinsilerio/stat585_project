@@ -1,9 +1,6 @@
-library("shiny")
-library("dplyr")
-library("lubridate")
-
 ## Load national data
 national <- read.csv(gzfile("../data/national.csv.gz")) %.% tbl_df() #Common
+states <- read.csv(gzfile("../data/states.csv.gz")) %.% tbl_df() #Common
 all.crimes <- as.character(unique(national$crime))
 range0 <- range(ymd(national$date)) %.% as.character()
 
@@ -11,53 +8,39 @@ range0 <- range(ymd(national$date)) %.% as.character()
 shinyUI(fluidPage(
   ## Title:
   titlePanel("Crimes in Mexico"),
-  
   sidebarLayout(
     ## Sidebar panel
     sidebarPanel(
-      
-      h1("Census Vis"),
-      p("Create demographic maps of ..."),
-      selectInput("var",
-                  label = "Choose a variable to display",
-                  choices = c("Percent White",
-                              "Percent Black",
-                            "Percent Hispanic",
-                            "Percent Asian")),
+      ##
+      ## Select Law
+      selectInput("law",
+                  label = "Select Law",
+                  choices = c("common", "Federal")),      
+      ##
       ## Select crime
       selectInput("crime",
                   label = "Select crime",
                   choices = all.crimes),
+      ##
       ## Select category
       uiOutput("category"),
+      ##
       ## Select date
       dateRangeInput("dates", 
                      label = ("Date range"),
-                     start = range0[1],
-                     end = range0[2]),
-      ## Rest
-    sliderInput("ran",
-                label = "Range of values",
-                min = 1,
-                max = 100,
-                value = c(30, 50)),
-    p("To intall shiny, run in your R terminal:"),
-    code("install.packages(\"shiny\")")),
-  
-  ##Main
-  mainPanel(h1("Now we'll do reactive text"),
-            #img(src="profile.jpg", height = 400, width = 400),
-            p("^_^"),
-            p(textOutput("text1")),
-            p(textOutput("text2")),
-            ## Subsection
-            h2("I need a section for this part"),
-            p("We have also learned how to",
-              span("highlight", style = "color:blue"),
-              "text within a paragraph."),
-            p("We will display now a map"),
-            plotOutput("map"))
-  )
+                     start = "1997-01-01",
+                     end = "2014-02-01"),
+      p("To intall shiny, run in your R terminal:"),
+      code("install.packages(\"shiny\")")),
+    
+    ##Main
+    mainPanel(
+      textOutput("text2"),
+      tabsetPanel(tabPanel("Table", tableOutput("table1")),
+                  tabPanel("By date", plotOutput("plot1"))
+      ) #tabset
+    ) # main
+  ) # sidebarLayout
 ))
 
 
