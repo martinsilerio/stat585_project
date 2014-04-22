@@ -262,7 +262,7 @@ rm(aux)
 
 Finally, we create the tables by states and national summarising different crime types. I am also adding the period (displayed as date). Save tables after that.
 
-```{r tables, dependson= "fixing", cache= TRUE}
+```{r tables, dependson= "fixing", cache= FALSE}
 
 ## Presitential terms
 per <- paste0(1994 + 6*(0:3), "-12-01 to ", 
