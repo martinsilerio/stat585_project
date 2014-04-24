@@ -59,19 +59,21 @@ output$plot1 <- renderPlot({
               linetype = party) 
   print(p1)
 })
+## Data for states
+dataInput <- reactive({
+  filter(states, 
+         crime == input$crime,
+         category == input$category,
+         (date) >= ymd(input$dates[1]),
+         (date) <= ymd(input$dates[2]))
+})
+
 ## map1
 output$map1 <- renderPlot({
-#output$map1 <- renderTable({
-    data.states <- filter(states, 
-                          crime == input$crime,
-                          category == input$category,
-                          (date) >= ymd(input$dates[1]),
-                          (date) <= ymd(input$dates[2]))
-    
-    
-    
-    range.date <- range(data.states$date)
-    
+  
+  data.states <- dataInput()
+  range.date <- range(data.states$date)
+
     ## Associating value with response
     value1 <- (filter(data.states,
                       date == range.date[1]) %.%
