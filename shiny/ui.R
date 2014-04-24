@@ -27,9 +27,7 @@ shinyUI(fluidPage(
       dateRangeInput("dates", 
                      label = ("Date range"),
                      start = "1997-01-01",
-                     end = "2014-02-01"),
-      p("To intall shiny, run in your R terminal:"),
-      code("install.packages(\"shiny\")")),
+                     end = "2014-02-01")),
     
     ##Main
     mainPanel(
