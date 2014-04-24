@@ -38,15 +38,6 @@ output$category <- renderUI(
               label = "Select Category",
               choices = categories)
 })
-## text2
-output$text2 <- renderText(
-{
-  paste0(
-    "Your range goes from ",
-    input$dates[1],
-    " to ",
-    input$dates[2])
-})
 ## table1
 output$table1 <- renderTable({
   data <- filter(national, 
