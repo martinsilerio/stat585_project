@@ -23,7 +23,9 @@ shinyServer(function(input, output) {
   ## Output crime
   output$crime <- renderUI(
 {
-  crimes <- (filter(national, law == input$law))$crime %.%
+  temp <- input$law
+  if(temp == "Common") temp <- "common"
+  crimes <- (filter(national, law == temp))$crime %.%
     unique() %.% as.character()
   selectInput("crime",
               label = "Select crime",

@@ -15,7 +15,7 @@ shinyUI(fluidPage(
       ## Select Law
       selectInput("law",
                   label = "Select Law",
-                  choices = c("common", "Federal")),      
+                  choices = c("Common", "Federal")),      
       ##
       ## Select crime
       uiOutput("crime"),
