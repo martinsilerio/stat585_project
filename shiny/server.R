@@ -28,7 +28,7 @@ shinyServer(function(input, output) {
   crimes <- (filter(national, law == temp))$crime %.%
     unique() %.% as.character()
   selectInput("crime",
-              label = "Select crime",
+              label = "Select Crime",
               choices = crimes)
 })
 ## Output category
@@ -132,8 +132,8 @@ output$differences <- renderPlot({
     geom_pointrange(aes(ymin = ymin, ymax = ymax)) +
     coord_flip() +
     ggtitle(paste("Increment in rate from ", 
-                  as.character(range.date), 
-                  collapse = " to "))
+                  paste(as.character(range.date), 
+                  collapse = " to ")))
   
   print(p3)  
 })## End differences

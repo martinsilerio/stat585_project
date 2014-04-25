@@ -1,9 +1,3 @@
-## Load national data
-#national <- read.csv(gzfile("../data/national.csv.gz")) %.% tbl_df() #Common
-#states <- read.csv(gzfile("../data/states.csv.gz")) %.% tbl_df() #Common
-#all.crimes <- as.character(unique(national$crime))
-#range0 <- range(ymd(national$date)) %.% as.character()
-
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
   ## Title:
@@ -28,7 +22,7 @@ shinyUI(fluidPage(
       dateRangeInput("dates", 
                      label = ("Date range"),
                      start = "1997-01-01",
-                     end = "2014-02-01")),
+                     end = "2014-03-01")),
     
     ##Main
     mainPanel(
