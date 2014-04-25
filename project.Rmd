@@ -27,7 +27,7 @@ The data extraction turned out to be more difficult than I thought. The website 
 
 <img src="./webpages_images/02_menu.png" width="800px" height="600px" />
 
-If the first option is selected, _Herramientas de Análisis_  (Analysis tools), you can create plots for the features and also download the data you are plotting, however, it never works well. The next image is a screenshot the site.
+If the first option is selected, _Herramientas de Análisis_  (Analysis tools), you can create plots for the features and also download the data you are plotting, however, it never works well. The next image is a screenshot the site.þ
 
 <img src="./webpages_images/04_analysis.png" width="800px" height="600px" />
 
