@@ -47,7 +47,8 @@ output$table1 <- renderTable({
                  category == input$category,
                  (date) >= ymd(input$dates[1]),
                  (date) <= ymd(input$dates[2]))
-  xtable(data[1:30, -c(1, 6, 8, 9)])
+  nrows <- min(30, nrow(data))
+  xtable(data[1:nrows, -c(1, 6, 8, 9)])
 })
 ## plot1
 output$plot1 <- renderPlot({

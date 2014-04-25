@@ -9,7 +9,7 @@ The idea of this work arose from the webpage [http://crimenmexico.diegovalle.net
 
 I use the same data as Diego Valle Jones. Those are number of crimes that every state submits each month.
 
-In the first section, I describe with more detail what is the database about. Then I explain the processing and difficulties of the database. Finally, I describe the `shiny` app.
+In the first section, I describe with more detail what is the database about. Then I explain the difficulties of obtainin the database, then the processing. Finally, I describe the `shiny` app.
 
 Description of the database
 ----------------------------------------------
@@ -20,14 +20,16 @@ Each of these two law have several types of crimes, and each crime might have fu
 
 The database contains all the counts for the different categories every month from 1997-01 to 2014-03. There data is available for each of the 32 states of Mexico.
 
-Data extraction and associated complications
+Database and problems
 -------------------------------------------------
 
-The data extraction turned out to be more difficult than I thought. The website of [Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva) displays the following menu (it is in Spanish, but most of the words are cognates):
+In this part I describe what I did in order to obtain the databases that I use for the `shiny` app. I end up with two databases: national crimes and statewise crimes.
+
+The original data is available at the website of [Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva). It displays the following menu (it is in Spanish, but most of the words are cognates):
 
 <img src="./webpages_images/02_menu.png" width="800px" height="600px" />
 
-If the first option is selected, _Herramientas de Análisis_  (Analysis tools), you can create plots for the features and also download the data you are plotting, however, it never works well. The next image is a screenshot the site.þ
+If the first option is selected, _Herramientas de Análisis_  (Analysis tools), you can create plots for the features and also download the data you are plotting, however, it never works well. The next image is a screenshot the site.
 
 <img src="./webpages_images/04_analysis.png" width="800px" height="600px" />
 
@@ -38,15 +40,14 @@ Finally, you can also download the tables in `pdf` files. I found a package in R
 
 I sent an email message to Diego Valle. He told me that he decided to create those plots precisely because the [goverment webpage](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva) never works. He send me his code in `Python` and he highlighted that he is constantly checking for new information and he extracts very little pieces of information since the wepages crashes otherwise. 
 
-I decided then to use the data directly from [Diego Valle's website](http://crimenmexico.diegovalle.net/en/csv/). If I have time, I will work downloading the data by myself once I finish the other thing I want to do.
+I decided then to use the data directly from [Diego Valle's website](http://crimenmexico.diegovalle.net/en/csv/).
 
-The work so far
+Processing the data
 ---------------------------------------------------
 
-I will decribe piece by piece what I have done. I am going to select the crime 'homicides' to illustrate what can be done and what I plan to do. This variable supports what I said at the beginning of the document that violence increased unbelievably during last Presidential term, although we can also observe that 15 years ago the situation was even worse (but none of that was reported on the media).
-
-Loading packages that will be used.
+I will decribe piece by piece what I have done. First of all, this is the  packages that will be used to process the data.
 ```{r}
+suppressPackageStartupMessages(library("maptools"))
 suppressPackageStartupMessages(library("ggplot2"))
 suppressPackageStartupMessages(library("plyr"))
 suppressPackageStartupMessages(library("dplyr"))
@@ -55,11 +56,9 @@ suppressPackageStartupMessages(library("car"))
 suppressPackageStartupMessages(library("R.utils")) # To create gz
 ```
 
-Reading data and creating a unique database
-------------------------------------
+The first thing to do is to is to make all the data consistet. As I said before, there are two major categories of crimes: Common and Federal, and there is a file for each one. Both have different levels of crimes, category, type and subtype. I am going to keep the law, crime and category. Then I merge them.
 
-As I said before, there are two major categories of crimes: Common and Federal. Both have different levels of crime, category, type and subtype. I am going to keep the crime, category and type columns.
-I am also going to translate the names to English.
+On the other hand, I also translate the names to English and create the date column,
 
 
 ```{r reading, cache = TRUE}
@@ -251,7 +250,7 @@ data <- mutate(data, state_code = aux(state_code))
 rm(aux)
 ```
 
-Finally, we create the tables by states and national summarising different crime types. I am also adding the period (displayed as date). Save tables after that.
+Finally, we create the tables by states and national summarising different crime types. I am also adding the period (displayed as date). Save tables after that in csv.gz format.
 
 ```{r tables, dependson= "fixing", cache= TRUE}
 
@@ -284,35 +283,12 @@ gzip("./data/national.csv")
 gzip("./data/states.csv")
 ```
 
-The first plot shows the homicides rates (per 10000 person) by days of goverment. I will fix the labels, but 
-- period.code = 0 is the period from 1994 to 2000,
-- period.code = 1 is the period from 2000 to 2006,
-- period.code = 2 is the period from 2006 to 2012 and
-- period.code = 3 is the period from 2012 to now.
+I generate a map in the `shiny` app for comparing crimes. The following is the code used to extract the polygons, then I saved the data frame. The original resolution was too high, I correct that. Do NOT run the next code.
 
-```{r, dependson= "tables", cache=TRUE, fig.height= 6, fig.width= 9, eval=FALSE}
-### Homicides
-qplot(days, total.rate, 
-      data = filter(national, crime == "HOMICIDIOS"), 
-      geom = "line", col = as.factor(period.code)) +
-  ggtitle("Homicides rate by days of goverment")
-```
-
-Same crime, but now continuously.
-
-```{r, dependson= "tables", cache=TRUE, fig.height= 6, fig.width= 9, eval=FALSE}
-### Homicides
-qplot(date, total.rate, 
-      data = filter(national, crime == "HOMICIDIOS"), 
-      geom = "line", col = as.factor(period.code)) +
-  ggtitle("Homicides rate by date")
-```
-
-The following is the code used to extract the polygons, then I saved the data frame. Do NOT run.
+I also add the the names of the states in this part.
 
 ```{r, eval= FALSE}
 ##### Extracting polygons and saving data.frame, so it will not be run again.
-library("maptools")
 xx <- readShapeSpatial("../mexico/MEX_adm1.shp")
 xxx <- thinnedSpatialPoly(as(xx, "SpatialPolygons"), tolerance = 0.1, minarea = 0.0005, 
                           topologyPreserve = TRUE)
@@ -355,98 +331,25 @@ mex <- mutate(mex, state.name = state.name[region])
 write.csv(mex, "./mexico/polygons.csv")
 ```
 
-Now we display two maps to make a comparison between two periods of time for the same crime.
 
-```{r maps, dependson= "tables", cache = TRUE, fig.height= 7, fig.width= 13, eval=FALSE}
-mex <- read.csv("./mexico/polygons.csv")[, -1]
-
-## Associating value with response
-value <- (filter(state.wise, month == 1, 
-       year == 2009, crime == "HOMICIDIOS") %.% 
-         arrange(state_code))$total.rate
-
-homicides.2009.1 <- mutate(mex, value = value[region])
-
-value <- (filter(state.wise, month == 1, 
-                 year == 2014, crime == "HOMICIDIOS") %.% 
-            arrange(state_code))$total.rate
-homicides.2014.1 <- mutate(mex, value = value[region])
-
-homicides <- rbind(cbind(homicides.2014.1, date = "Jan 2014"),
-                   cbind(homicides.2009.1, date = "Jan 2009")) 
-
-ggplot(data = homicides, aes(x, y)) +
-    geom_polygon(col = "darkred", aes(order = order, group = group, 
-       fill = value)) +
-    facet_wrap(~ date) +
-  scale_fill_gradient(low='white', high='darkred')
-
-
-ggplot(data = mex, aes(x, y)) + geom_polygon(col = "darkred", aes(order = order, group = group, fill = region == 10)) 
-
-```
-
-I will try now to do it in `ggvis`.
-```{r , dependson= "maps", fig.height= 7, fig.width= 13, eval=FALSE}
-suppressPackageStartupMessages(library("ggvis"))
-
-ggvis(homicides.2014.1, props(x= ~x, y= ~y)) +
-    layer_path(data= by_group(group))
-```
-
-
-This is use code is used when I was exploring the website to download the data.
-```{r code, eval = FALSE}
-###
-### Part of the trials for downloading the data
-###
-# 
-# library(XML) ## Loading library to read websites.
-# 
-# ## Main Page
-# url <- "http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva"
-# ## Crimes page
-# url <- "http://www.incidenciadelictiva.secretariadoejecutivo.gob.mx/wdelito/"
-# 
-# ## Selecting periods page: Fuero Federal
-# 
-# ## This does not contain the information.
-# url <- "http://estadisticadelictiva.secretariadoejecutivo.gob.mx/mondrian/testpage.jsp"
-# 
-# ## Year, state and month
-# url <- "http://estadisticadelictiva.secretariadoejecutivo.gob.mx/mondrian/testpage.jsp?query=anio_ent_mes_ff"
-# 
-# 
-# ## All crime types
-# url <- "http://estadisticadelictiva.secretariadoejecutivo.gob.mx/mondrian/"
-# 
-# ## Parsing the site
-# doc <- htmlParse(url)
-# 
-# ## Obtaining root
-# root <- xmlRoot(doc)
-# 
-# ## Some numbers to look at
-# length(xmlChildren(root)) ## Two elements in the structure
-# names(xmlChildren(root)) ## Names of the two elements
-# length(xmlChildren(xmlChildren(root)[[2]]))
-# 
-# ## Selecting body children
-# body <- xmlChildren(xmlChildren(root)[[2]])
-# 
-# names(body)
-# 
-# body
-# 
-# download.file("http://www.secretariadoejecutivo.gob.mx/work/models/SecretariadoEjecutivo/Resource/131/1/images/publicacionFebrero2014_032014.pdf", "mes.pdf")
-# 
-# getNodeSet(root, "//*")
-```
-
-
-Remaining work
+Shiny app
 -------------------------------------
-1. For sake of illustration, I considered only number of homicides. A representative selection of crimes must be done.
-2. Use `shiny` or `ggvis` to interactive plots in such way that the user can select the crime and the days of dates, respectively for the first and second plots of homicides.
-3. Add the option of an smoothing method.
-4. The last plots of homicides is the one that compares two different dates and the value is displayed as color intensity. I am going to make this interactive, so the user can select the month and year for each map and also select the crime.
+
+The following image is what shows up when we run the app. For all the options, we select the law, then it displays the possible options for crime under that law, and finally, the appropriate category. We can also select the range where we want to make a comparison.
+
+The first plot shows the path for the specified range. It shows the color according to the Presidential term and type of line according to the political party.
+
+<img src="./webpages_images/01-shiny.png" width="750px" height="400px" />
+
+The second tab shows the difference in the rate of the specified crime for the specified range (it takes the extremes) for each state.
+
+<img src="./webpages_images/02-shiny.png" width="750px" height="400px" />
+
+The following plot shows two maps of Mexico, for the beginning and the end of the selected period. The darker color of the state, the more incidence of that crime it has.
+
+<img src="./webpages_images/03-shiny.png" width="750px" height="400px" />
+
+Finally, we display the first elemements of the table for national crimes, this is just to show the structure of the data.
+
+<img src="./webpages_images/04-shiny.png" width="750px" height="400px" />
+
