@@ -56,9 +56,12 @@ output$plot1 <- renderPlot({
                  category == input$category,
                  (date) >= ymd(input$dates[1]),
                  (date) <= ymd(input$dates[2]))
+  range.dates <- range(data$date)
   p1 <- qplot(date, total.rate, data = data, 
               geom = "line", col = period,
-              linetype = party) 
+              linetype = party) +
+    ggtitle(paste0("Crime rates from", 
+                   paste(range.dates, collapse = " to ")))
   print(p1)
 })
 ## Data for states
@@ -94,7 +97,8 @@ output$map1 <- renderPlot({
     geom_polygon(col = "darkred", 
                  aes(order = order, group = group, fill = value)) +
     facet_wrap(~ date) +
-    scale_fill_gradient(low='white', high='darkred')  
+    scale_fill_gradient(low='white', high='darkred') +
+    ggtitle("Comparison for states")
   
   print(p2)  
 })## End map 1
