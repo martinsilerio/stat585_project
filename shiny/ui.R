@@ -11,6 +11,7 @@ shinyUI(fluidPage(
   sidebarLayout(
     ## Sidebar panel
     sidebarPanel(
+      h4("Crimes per 10000 inhabitants"),
       ##
       ## Select Law
       selectInput("law",
@@ -32,9 +33,10 @@ shinyUI(fluidPage(
     ##Main
     mainPanel(
       textOutput("text2"),
-      tabsetPanel(tabPanel("Table", tableOutput("table1")),
-                  tabPanel("Path", plotOutput("plot1")),
-                  tabPanel("Map", plotOutput("map1"))
+      tabsetPanel(tabPanel("Path", plotOutput("plot1")),
+                  tabPanel("Differences by state", plotOutput("differences")),
+                  tabPanel("Map", plotOutput("map1")),
+                  tabPanel("Table", tableOutput("table1"))
       ) #tabset
     ) # main
   ) # sidebarLayout

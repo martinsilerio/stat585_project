@@ -97,7 +97,43 @@ output$map1 <- renderPlot({
     scale_fill_gradient(low='white', high='darkred')  
   
   print(p2)  
-})
+})## End map 1
+
+output$differences <- renderPlot({
+  
+  data.states <- dataInput()
+  range.date <- range(data.states$date)
+  
+  ## Associating value with response
+  value.before <- (filter(data.states,
+                    date == range.date[1]) %.%
+               arrange(state_code))$total.rate
+  value.after <- (filter(data.states,
+                    date == range.date[2]) %.%
+               arrange(state_code))$total.rate
+  
+  ## Create new data frame with only 32 states and differences
+  df <- mex %.% group_by(region, state.name) %.%
+    summarise(n = n()) %.%
+    select(region, state.name) %.%
+    mutate(increment = value.after[region] - 
+                 value.before[region],
+           differences = 0,
+           ymax = max(increment, 0),
+           ymin = min(increment, 0)) %.%
+    arrange(state.name)
+    
+  p3 <- ggplot(data = df, aes(state.name, differences)) +  
+    geom_point() + 
+    geom_pointrange(aes(ymin = ymin, ymax = ymax)) +
+    coord_flip() +
+    ggtitle(paste("Increment in rate from ", 
+                  as.character(range.date), 
+                  collapse = " to "))
+  
+  print(p3)  
+})## End differences
+
 })
 
 

@@ -323,7 +323,7 @@ The following is the code used to extract the polygons, then I saved the data fr
 ##### Extracting polygons and saving data.frame, so it will not be run again.
 library("maptools")
 xx <- readShapeSpatial("../mexico/MEX_adm1.shp")
-xxx <- thinnedSpatialPoly(as(xx, "SpatialPolygons"), tolerance = 0.05, minarea = 0.0005, 
+xxx <- thinnedSpatialPoly(as(xx, "SpatialPolygons"), tolerance = 0.1, minarea = 0.0005, 
                           topologyPreserve = TRUE)
 extractPolygons <- function(shapes) {
   require(plyr)
@@ -345,40 +345,23 @@ extractPolygons <- function(shapes) {
 }
 mex <- extractPolygons(xxx)
 
-state.name <- c("Aguascalientes",
-                "Baja California",
-                "Baja California Sur",
-                "Campeche",
-                "Chiapas", #5
-                "Chihuahua",
-                "Coahuila",
-                "Colima",
-                "Distrito Federal",
-                "Durango", #10
-                "Guanajuato",
-                "Guerrero",
-                "Hidalgo",
-                "Jalisco",
-                "Estado de México", #15
-                "Michoacán",
-                "Morelos",
-                "Nayarit",
-                "Nuevo León",
-                "Oaxaca", #20
-                "Puebla",
-                "Querétaro",
-                "Quintana Roo",
-                "San Luis Potosí",
-                "Sinaloa", #25
-                "Sonora",
-                "Tabasco",
-                "Tamaulipas",
-                "Tlaxcala",
-                "Veracruz",
-                "Yucatán",
-                "Zacatecas"
+state.name <- c("Aguascalientes", "Baja California",
+                "Baja California Sur", "Campeche", "Chiapas", #5
+                "Chihuahua", "Coahuila", "Colima", 
+                "Distrito Federal", "Durango", #10
+                "Guanajuato", "Guerrero", "Hidalgo",
+                "Jalisco", "Estado de México", #15
+                "Michoacán", "Morelos", "Nayarit",
+                "Nuevo León", "Oaxaca", #20
+                "Puebla", "Querétaro", "Quintana Roo",
+                "San Luis Potosí", "Sinaloa", #25
+                "Sonora", "Tabasco", "Tamaulipas",
+                "Tlaxcala", "Veracruz",
+                "Yucatán", "Zacatecas"
                 )
-write.csv(mex, "../mexico/polygons.csv")
+
+mex <- mutate(mex, state.name = state.name[region])
+write.csv(mex, "./mexico/polygons.csv")
 ```
 
 Now we display two maps to make a comparison between two periods of time for the same crime.
