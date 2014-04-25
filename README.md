@@ -1,6 +1,7 @@
-stat585_project
+STAT 585X project
 ===============
 
+This will be updated soon
 This repository contains:
 
 1) "project.Rmd", the description and development of the Data Technology for Statistical Analysis course (STAT 585X). 
