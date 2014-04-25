@@ -344,6 +344,40 @@ extractPolygons <- function(shapes) {
   dframe
 }
 mex <- extractPolygons(xxx)
+
+state.name <- c("Aguascalientes",
+                "Baja California",
+                "Baja California Sur",
+                "Campeche",
+                "Chiapas", #5
+                "Chihuahua",
+                "Coahuila",
+                "Colima",
+                "Distrito Federal",
+                "Durango", #10
+                "Guanajuato",
+                "Guerrero",
+                "Hidalgo",
+                "Jalisco",
+                "Estado de México", #15
+                "Michoacán",
+                "Morelos",
+                "Nayarit",
+                "Nuevo León",
+                "Oaxaca", #20
+                "Puebla",
+                "Querétaro",
+                "Quintana Roo",
+                "San Luis Potosí",
+                "Sinaloa", #25
+                "Sonora",
+                "Tabasco",
+                "Tamaulipas",
+                "Tlaxcala",
+                "Veracruz",
+                "Yucatán",
+                "Zacatecas"
+                )
 write.csv(mex, "../mexico/polygons.csv")
 ```
 
@@ -372,6 +406,10 @@ ggplot(data = homicides, aes(x, y)) +
        fill = value)) +
     facet_wrap(~ date) +
   scale_fill_gradient(low='white', high='darkred')
+
+
+ggplot(data = mex, aes(x, y)) + geom_polygon(col = "darkred", aes(order = order, group = group, fill = region == 10)) 
+
 ```
 
 I will try now to do it in `ggvis`.
