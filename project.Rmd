@@ -58,7 +58,7 @@ suppressPackageStartupMessages(library("R.utils")) # To create gz
 
 The first thing to do is to is to make all the data consistet. As I said before, there are two major categories of crimes: Common and Federal, and there is a file for each one. Both have different levels of crimes, category, type and subtype. I am going to keep the law, crime and category. Then I merge them.
 
-On the other hand, I also translate the names to English and create the date column,
+On the other hand, I also translate the names to English and create the date column.
 
 
 ```{r reading, cache = TRUE}
