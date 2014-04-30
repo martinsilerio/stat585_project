@@ -5,7 +5,7 @@ Last Presidential term (2006-2012) in Mexico was characterized for the violence 
 
 An application in `shiny` was done in order to make the crimes at different times easier to compare. It allows to compare not only the mentiones periods, but any dates between 1997 and the present.
 
-The idea of this work arose from the webpage [http://crimenmexico.diegovalle.net/en/](http://crimenmexico.diegovalle.net/en/) by [Diego Valle Jones](http://www.diegovalle.net), who has very interesting plots and crimes data from Mexico from has some illustrative plots of a subset of crimes-related variables from the Mexican goverment website [Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva). 
+The idea of this work arose from the webpage [http://crimenmexico.diegovalle.net/en/](http://crimenmexico.diegovalle.net/en/) by [Diego Valle Jones](http://www.diegovalle.net), who has very interesting plots and crimes data from Mexico from has some illustrative plots of a subset of crimes-related variables from the Mexican government website [Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva). 
 
 I use the same data as Diego Valle Jones. Those are number of crimes that every state submits each month.
 
@@ -38,7 +38,7 @@ If you select the option _Exportación de Información_ (Exporting information),
 
 Finally, you can also download the tables in `pdf` files. I found a package in R that could help to obtain the information from tables in `pdf`, however, not all the information is available in `pdf`.
 
-I sent an email message to Diego Valle. He told me that he decided to create those plots precisely because the [goverment webpage](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva) never works. He send me his code in `Python` and he highlighted that he is constantly checking for new information and he extracts very little pieces of information since the wepages crashes otherwise. 
+I sent an email message to Diego Valle. He told me that he decided to create those plots precisely because the [government webpage](http://www.secretariadoejecutivo.gob.mx/es/SecretariadoEjecutivo/Incidencia_Delictiva) never works. He send me his code in `Python` and he highlighted that he is constantly checking for new information and he extracts very little pieces of information since the wepages crashes otherwise. 
 
 I decided then to use the data directly from [Diego Valle's website](http://crimenmexico.diegovalle.net/en/csv/).
 
@@ -210,11 +210,11 @@ Each presidential term lasts six years. We have to associate with each date the 
 On the other hand, we also have to correct the state codes, since there are states with the wrong labels. Since the Spanish diccionary does not longer consider the _ch_ combination as a letter, so the alphabetical order of the states is slightly different.
 
 ```{r fixing, dependson= "reading", cache = TRUE}
-### This is the first day of goverment period for recorded data, i.e.,
+### This is the first day of government period for recorded data, i.e.,
 ## We have data starting on 1997. That president started his period on 1994-12-01
 day0 <- ymd("1994-12-01")
 
-## Now we add days of goverment and period of goverment.
+## Now we add days of government and period of government.
 aux <- function(date)
 {
   ## Aux function to determine the period.

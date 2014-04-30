@@ -61,7 +61,7 @@ output$plot1 <- renderPlot({
   p1 <- qplot(date, total.rate, data = data, 
               geom = "line", col = period,
               linetype = party) +
-    ggtitle(paste0("Crime rates from", 
+    ggtitle(paste0("Crime rates from ", 
                    paste(range.dates, collapse = " to ")))
   print(p1)
 })

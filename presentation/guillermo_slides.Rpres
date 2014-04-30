@@ -1,33 +1,70 @@
 Crimes in Mexico - A shiny app
 ========================================================
 author: Guillermo Basulto-Elias
-date: 2014-02-05
+date: 2014-05-05
+transition: none
 
 
-First Slide
+Motivation
 ========================================================
 
+- "Drug war" started in 2006 (Blue party)
+
+- Elections 2012 (Red party)
+
+- Diego Valle's website: Nice plots for some crimes
+
+- Crimes data from the Mexican government website
 
 
-2014-05-02
-
-For more details on authoring R presentations click the
-**Help** button on the toolbar.
-
-- Bullet 1
-- Bullet 2
-- Bullet 3
-
-Slide With Code
+Data
 ========================================================
 
-```{r}
-summary(cars)
-```
+Mexican government website
+------
 
-Slide With Plot
-========================================================
+- Download csv files
 
-```{r, echo=FALSE}
-plot(cars)
-```
+- Make some plots
+
+- Download pdf files
+
+Alternatives
+--------
+
+- Ask Diego Valle how to download the data
+
+- Use Diego Valle's files
+
+Data processing
+======================================================
+
+R packages:
+
+- `maptools`: creating map
+
+- `ggplot2`: generating plots
+
+- `dplyr`: adding/deleting columns
+
+- `lubridate`: handling dates
+
+- `car`: replacing names in English
+
+- `R.utils`: saving as csv.gz
+
+Little aspects
+=====================================================
+
+- Some crimes changed their name
+
+- "ch" is no longer a letter:
+ - ...
+ - Baja California Sur
+ - Campeche
+ - Coahuila
+ - Colima
+ - **Chiapas**
+ - **Chihuahua**
+ - Durango 
+ ...
